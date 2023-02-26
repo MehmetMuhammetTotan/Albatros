@@ -15,7 +15,11 @@ class Authenticate extends Middleware
     protected function redirectTo($request)
     {
         if (! $request->expectsJson()) {
-            return route('login');
+            if($request->route()->getPrefix() == '/yonetim'){
+                return route('admin.giris_yap.get');
+            }else{
+                return route('user.giris_yap.get');
+            }
         }
     }
 }
