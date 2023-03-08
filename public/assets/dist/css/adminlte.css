@@ -34988,6 +34988,7 @@ a.close.disabled, a.disabled.mailbox-attachment-close {
   width: 360px;
 }
 
+
 @media (max-width: 576px) {
   .login-box,
   .register-box {

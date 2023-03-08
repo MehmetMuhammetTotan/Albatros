@@ -3,22 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 
-
-class Admin extends Authenticatable
+class AdminYetkiler extends Model
 {
     use HasFactory;
-    protected $table = "admins"; // Tablo adı
+    protected $table = "admin_yetkileri"; // Tablo adı
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'admin_id',
+        'yetkiler',
     ]; // Dolu olması gereken alanlar
 
 
     protected $hidden = [
-        'password',
+
     ]; // Gizli alanlar
 }

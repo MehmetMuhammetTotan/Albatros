@@ -52,5 +52,24 @@
 <!-- Custom -->
 <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 @yield('js')
+    <script>
+        $(".btnSil").on("click", function (event, state){
+            event.preventDefault();
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Yaptığınız işlem geri alınamayabilir!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Anladım, Sil!',
+                cancelButtonText: 'Hayır, Vazgeç!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = $(this).attr("href");
+                }
+            });
+        });
+    </script>
 </body>
 </html>

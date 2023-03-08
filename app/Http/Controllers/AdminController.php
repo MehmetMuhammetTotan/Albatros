@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin;
+use App\Models\AdminYetkiler;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use PhpParser\Node\Expr\Array_;
 use stdClass;
 
@@ -29,7 +32,15 @@ class AdminController extends Controller
         } else {
             Cookie::queue(Cookie::forget('email'));
         }
-        if (auth()->guard('admin')->attempt($validated)) {
+        if (auth()->guard('admin')->attempt($validated) and Admin::where("deleted_at", null)->where("email", $request->email)->first() != "NULL") {
+            if (!(auth()->guard('admin')->user()->status)) {
+                auth()->guard('admin')->logout();
+                return redirect()->back()->withErrors(["Hesabınız pasif durumdadır. Lütfen yönetici ile iletişime geçiniz."]);
+            }
+            if ((auth()->guard('admin')->user()->deleted_at != null)) {
+                auth()->guard('admin')->logout();
+                return redirect()->back()->withErrors(["Email veya şifre hatalı"]);
+            }
             return redirect()->route('admin.index.get');
         } else {
             return redirect()->back()->withErrors(["Email veya şifre hatalı"]);
@@ -52,14 +63,55 @@ class AdminController extends Controller
         return view("admin.adminlte.sayfalar.profil");
     }
 
-    public function postProfilBilgiGuncelle(Request $request)
+    public function postKullanicilarEkle(Request $request)
     {
-
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:admins,email,' . auth()->guard('admin')->user()->id,
+            'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:6',
         ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        if (Admin::where("email", $request->email)->where("deleted_at", NULL)->first() != null) {
+            return redirect()->back()->withErrors(["Bu email adresi zaten kullanımda"])->withInput();
+        }
+
+        $admin = new Admin();
+        $admin->name = $request->name;
+        $admin->email = $request->email;
+        $admin->password = Hash::make($request->password);
+        $admin->status = ($request->aktiflik == "on") ? 1 : 0;
+        if (!$admin->save()) {
+            return redirect()->back()->withErrors(["Kullanıcı eklenirken bir hata oluştu"])->withInput();
+        }
+        if (AdminYetkiler::where("admin_id", $admin->id)->first() == null) {
+            $yetkiler = new AdminYetkiler();
+            $yetkiler->admin_id = $admin->id;
+            $yetkiler->yetkiler = json_encode(array());
+            $yetkiler->save();
+        }
+        return redirect()->route("admin.kullanicilar.get")->with("success", "Kullanıcı başarıyla eklendi");
+    }
+
+    public function postProfilBilgiGuncelle(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
+            'password' => 'required|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        if (Admin::where("email", $request->email)->where("deleted_at", NULL)->where("id", "!=", auth()->guard('admin')->user()->id)->first() != null) {
+            return redirect()->back()->withErrors(["Bu email adresi zaten kullanımda"])->withInput();
+        }
+
         if (Hash::check($request->password, auth()->guard('admin')->user()->password)) {
             auth()->guard('admin')->user()->update([
                 'name' => $request->name,
@@ -67,7 +119,7 @@ class AdminController extends Controller
             ]);;
             return redirect()->back()->with("success", "Profil bilgileriniz başarıyla güncellendi");
         } else {
-            return redirect()->back()->withErrors(["Mevcut şifreniz hatalı"]);
+            return redirect()->back()->withErrors(["Mevcut şifreniz hatalı"])->withInput();
         }
     }
 
@@ -87,10 +139,107 @@ class AdminController extends Controller
         }
     }
 
-    public function getKullanicilar(){
-        $kullanicilar = Admin::all();
-        $viewData = Array();
+    public function getKullanicilar()
+    {
+        if(@kullanicininYetkileri()["kullanicilar"]["goruntule"] != "on") abort(403, "YETKİNİZ YOK");
+        $kullanicilar = Admin::all()->where("deleted_at", null);
+        $viewData = array();
         $viewData["kullanicilar"] = $kullanicilar;
-        return view("admin.adminlte.sayfalar.kullanicilar", $viewData);
+        return view("admin.adminlte.sayfalar.kullanicilar.kullanicilar", $viewData);
+    }
+
+    public function postKullanicilarAktifPasif(Request $request)
+    {
+        if(@kullanicininYetkileri()["kullanicilar"]["duzenle"] != "on") return response()->json(["status" => false, "message" => "BAŞARISIZ! Bu işlem için yetkiniz bulunmamaktadır"]);
+        $id = $request->id;
+        $kullanici = Admin::find($id);
+        if ($kullanici->id == auth()->guard('admin')->user()->id and $kullanici->status) return response()->json(["status" => false, "message" => "BAŞARISIZ! Kendi hesabınızın durumunu değiştiremezsiniz"]);
+        $kullanici->status = !$kullanici->status;
+        if (!$kullanici->save()) {
+            return response()->json(["status" => false, "message" => "BAŞARISIZ! Veritabanında güncelleme işlemi yapılamadı"]);
+        } else {
+            return response()->json(["status" => true, "message" => "BAŞARILI! Kullanıcı durumu başarıyla güncellendi"]);
+        }
+    }
+
+    public function getKullanicilarEkle()
+    {
+        if(@kullanicininYetkileri()["kullanicilar"]["ekle"] != "on") abort(403, "YETKİNİZ YOK");
+        return view("admin.adminlte.sayfalar.kullanicilar.ekle");
+    }
+
+    public function getKullanicilarSil($id)
+    {
+        if(@kullanicininYetkileri()["kullanicilar"]["sil"] != "on") abort(403, "YETKİNİZ YOK");
+        if ($id == auth()->guard('admin')->user()->id) return redirect()->back()->withErrors(["Kendinizi silemezsiniz"]);
+        $kullanici = Admin::find($id);
+        $kullanici->deleted_at = Carbon::now();
+        if (!$kullanici->save()) {
+            return redirect()->back()->withErrors(["Kullanıcı silinirken bir hata oluştu"]);
+        } else {
+            return redirect()->route("admin.kullanicilar.get")->with("success", "Kullanıcı başarıyla silindi");
+        }
+    }
+
+    public function getKullanicilarDuzenle($id)
+    {
+        if(@kullanicininYetkileri()["kullanicilar"]["duzenle"] != "on") abort(403, "YETKİNİZ YOK");
+        if (!is_numeric($id)) return redirect()->route("admin.kullanicilar.get")->withErrors(["Kullanıcı bulunamadı"]);
+        if (Admin::where("deleted_at", null)->where("id", $id)->first() == null) return redirect()->route("admin.kullanicilar.get")->withErrors(["Kullanıcı bulunamadı"]);
+        return view("admin.adminlte.sayfalar.kullanicilar.duzenle", ["kullanici" => Admin::find($id)]);
+    }
+
+    public function postKullanicilarDuzenle($id)
+    {
+        if(@kullanicininYetkileri()["kullanicilar"]["duzenle"] != "on") abort(403, "YETKİNİZ YOK");
+        if (!is_numeric($id)) return redirect()->route("admin.kullanicilar.get")->withErrors(["Kullanıcı bulunamadı"]);
+        if (Admin::where("deleted_at", null)->where("id", $id)->first() == null) return redirect()->route("admin.kullanicilar.get")->withErrors(["Kullanıcı bulunamadı"]);
+        $kullanici = Admin::find($id);
+        $kullanici->name = request("name");
+        $kullanici->email = request("email");
+        (request("password") != "") ? $kullanici->password = Hash::make(request("password")) : null;
+        if (!$kullanici->save()) {
+            return redirect()->back()->withErrors(["Kullanıcı güncellenirken bir hata oluştu"])->withInput();
+        } else {
+            return redirect()->route("admin.kullanicilar.get")->with("success", "Kullanıcı başarıyla güncellendi");
+        }
+    }
+
+    public function getKullanicilarYetkiler($id)
+    {
+        if(@kullanicininYetkileri()["kullanicilar"]["yetkiler"] != "on") abort(403, "YETKİNİZ YOK");
+        if (!is_numeric($id)) return redirect()->route("admin.kullanicilar.get")->withErrors(["Kullanıcı bulunamadı"]);
+        if (Admin::where("deleted_at", null)->where("id", $id)->first() == null) return redirect()->route("admin.kullanicilar.get")->withErrors(["Kullanıcı bulunamadı"]);
+        if (AdminYetkiler::where("admin_id", $id)->first() == null) {
+            $yetkiler = new AdminYetkiler();
+            $yetkiler->admin_id = $id;
+            $yetkiler->yetkiler = json_encode(array());
+            $yetkiler->save();
+        }
+        return view("admin.adminlte.sayfalar.kullanicilar.yetkiler", ["kullanici" => Admin::find($id), "yetkiler" => AdminYetkiler::where("admin_id", $id)->first()]);
+    }
+
+    public function postKullanicilarYetkilerAktifPasif($id, Request $request){
+        if(@kullanicininYetkileri()["kullanicilar"]["yetkiler"] != "on") return response()->json(["status" => false, "message" => "BAŞARISIZ! Bu işlem için yetkiniz bulunmamaktadır"]);
+        if (!is_numeric($id)) return json_encode(["status" => false, "message" => "Kullanıcı bulunamadı"]);
+        if (Admin::where("deleted_at", null)->where("id", $id)->first() == null) return json_encode(["status" => false, "message" => "Kullanıcı bulunamadı"]);;
+        if (AdminYetkiler::where("admin_id", $id)->first() == null) {
+            $yetkiler = new AdminYetkiler();
+            $yetkiler->admin_id = $id;
+            $yetkiler->yetkiler = json_encode(array());
+            $yetkiler->save();
+        }
+        $yetkiler = AdminYetkiler::where("admin_id", $id)->first();
+        $gelenYetkiler = json_decode($yetkiler->yetkiler, true);
+        if($request->durum == "true"){
+            $gelenYetkiler[$request->menu][$request->alt_menu] = "on";
+        }else{
+            unset($gelenYetkiler[$request->menu][$request->alt_menu]);
+        }
+        $yetkiler->yetkiler = json_encode($gelenYetkiler);
+        if(!$yetkiler->save()){
+            return json_encode(["status" => false, "message" => "Kullanıcı yetkileri güncellenirken bir hata oluştu"]);
+        }
+        return json_encode(["status" => true, "message" => "Kullanıcı yetkileri başarıyla güncellendi"]);
     }
 }

@@ -1,0 +1,6 @@
+<?php
+
+return [
+    "kullanicilar" => "Kullanıcılar"
+];
+

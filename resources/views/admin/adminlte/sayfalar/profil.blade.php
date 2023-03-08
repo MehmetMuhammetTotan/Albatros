@@ -44,7 +44,7 @@
                                         </div>
                                         <input type="text" name="name" class="form-control" id="forName"
                                                placeholder="Adınız Soyadınız"
-                                               value="{{auth()->guard('admin')->user()->name}}">
+                                               value="{{ old("name", auth()->guard('admin')->user()->name) }}">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -55,7 +55,7 @@
                                         </div>
                                     <input type="email" name="email" class="form-control" id="forEmail"
                                            placeholder="Email Adresiniz"
-                                           value="{{auth()->guard('admin')->user()->email}}">
+                                           value="{{old("email", auth()->guard('admin')->user()->email)}}">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -143,7 +143,6 @@
     <script src="{{asset('assets/plugins/jquery-validation/additional-methods.min.js')}}"></script>
     <script>
         $('form').on('submit', function(event) {
-
             // Formda hala geçerli olan validation kurallarını kontrol edin
             if ($(this).valid()) {
                 // Geçerli ise form submit işlemini gerçekleştirin
