@@ -1,16 +1,16 @@
 @extends('admin.adminlte.partials.master')
 @section('content')
-    @section('title', config("const.personel_gruplari").' - '.config("const.yonetim_paneli"))
+    @section('title', config("const.personeller").' - '.config("const.yonetim_paneli"))
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>{{config("const.personel_gruplari")}}</h1>
+                    <h1>{{config("const.personeller")}}</h1>
                 </div>
                 <div class="col-sm-6">
                     <div class="breadcrumb float-sm-right">
-                        <a @if(@kullanicininYetkileri()["personel_gruplari"]["ekle"] == "on") class="btn  ml-2 btn-outline-info" href="{{route("admin.personel_gruplari_ekle.get")}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-info not-allowed" @endif><i class="fa fa-plus"></i> {{config("const.personel_grubu")}} {{config("const.ekle")}}</a>
+                        <a @if(@kullanicininYetkileri()["personeller"]["ekle"] == "on") class="btn  ml-2 btn-outline-info" href="{{route("admin.personeller_ekle.get")}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-info not-allowed" @endif><i class="fa fa-plus"></i> {{config("const.personel")}} {{config("const.ekle")}}</a>
                     </div>
                 </div>
             </div>
@@ -26,7 +26,7 @@
                 <div class="col-12">
                     <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">{{config("const.personel_gruplari")}} {{config("const.listesi")}}</h3>
+                            <h3 class="card-title">{{config("const.personel")}} {{config("const.listesi")}}</h3>
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
@@ -34,33 +34,32 @@
                                 <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Grup Adı</th>
-                                    <th>Grup Açıklaması</th>
-                                    <th>Üst Grup</th>
+                                    <th>Resim</th>
+                                    <th>Adı - Soyadı</th>
+                                    <th>Grubu</th>
                                     <th>Oluşturulma Tarihi</th>
                                     <th>İşlem</th>
                                 </tr>
                                 </thead>
                                 <tbody>
 
-                                @foreach($personel_gruplari as $personel_grubu)
-
+                                @foreach($personeller as $personel)
                                     <tr>
-                                        <td>{{$personel_grubu->id}}</td>
-                                        <td>{{$personel_grubu->grup_adi}}</td>
-                                        <td>{{$personel_grubu->grup_aciklamasi}}</td>
-                                        <td>{{$personel_grubu->ust_grup_adi}}</td>
-                                        <td>{{date("Y-m-d", strtotime($personel_grubu->created_at))}}</td>
-                                        <td><a @if(@kullanicininYetkileri()["personel_gruplari"]["duzenle"] == "on") class="btn  ml-2 btn-outline-warning" href="{{route("admin.personel_gruplari_duzenle.get", ["id" => $personel_grubu->id])}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-warning not-allowed" @endif><i class="fas fa-pen"></i> {{config("const.duzenle")}}</a><a @if(@kullanicininYetkileri()["personel_gruplari"]["sil"] == "on") class="btn  ml-2 btn-outline-danger btnSil" href="{{route("admin.personel_gruplari_sil.get", ["id" => $personel_grubu->id])}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-danger not-allowed" @endif><i class="fas fa-trash"></i> {{config("const.sil")}}</a></td>
+                                        <td>{{$personel->id}}</td>
+                                        <td><a href="{{asset($personel->resim)}}" target="_blank"><img src="{{asset($personel->resim)}}" height="100" /></a></td>
+                                        <td>{{$personel->ad}} {{$personel->soyad}}</td>
+                                        <td>{{$personel->grup_adi}}</td>
+                                        <td>{{date("Y-m-d", strtotime($personel->created_at))}}</td>
+                                        <td><a @if(@kullanicininYetkileri()["personeller"]["duzenle"] == "on") class="btn  ml-2 btn-outline-warning" href="{{route("admin.personeller_duzenle.get", ["id" => $personel->id])}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-warning not-allowed" @endif><i class="fas fa-pen"></i> {{config("const.duzenle")}}</a><a @if(@kullanicininYetkileri()["personeller"]["sil"] == "on") class="btn  ml-2 btn-outline-danger btnSil" href="{{route("admin.personeller_sil.get", ["id" => $personel->id])}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-danger not-allowed" @endif><i class="fas fa-trash"></i> {{config("const.sil")}}</a></td>
                                     </tr>
                                 @endforeach
                                 </tbody>
                                 <tfoot>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Grup Adı</th>
-                                    <th>Grup Açıklaması</th>
-                                    <th>Üst Grup</th>
+                                    <th>Resim</th>
+                                    <th>Adı - Soyadı</th>
+                                    <th>Grubu</th>
                                     <th>Oluşturulma Tarihi</th>
                                     <th>İşlem</th>
                                 </tr>

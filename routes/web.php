@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
-})->middleware('auth');
+    return abort(403, 'Çok yakında...');
+});
 
 
 Route::prefix('/yonetim')->name('admin.')->group(function () {
@@ -41,6 +41,11 @@ Route::prefix('/yonetim')->name('admin.')->group(function () {
         Route::post('/kullanicilar/aktif-pasif', [App\Http\Controllers\AdminController::class, 'postKullanicilarAktifPasif'])->name('kullanicilar_aktif_pasif.post');
 
         Route::get('/personeller', [App\Http\Controllers\AdminController::class, 'getPersoneller'])->name('personeller.get');
+        Route::get('/personeller/ekle', [App\Http\Controllers\AdminController::class, 'getPersonellerEkle'])->name('personeller_ekle.get');
+        Route::post('/personeller/ekle', [App\Http\Controllers\AdminController::class, 'postPersonellerEkle'])->name('personeller_ekle.post');
+        Route::get('/personeller/duzenle/{id}', [App\Http\Controllers\AdminController::class, 'getPersonellerDuzenle'])->name('personeller_duzenle.get');
+        Route::post('/personeller/duzenle/{id}', [App\Http\Controllers\AdminController::class, 'postPersonellerDuzenle'])->name('personeller_duzenle.post');
+        Route::get('/personeller/sil/{id}', [App\Http\Controllers\AdminController::class, 'getPersonellerSil'])->name('personeller_sil.get');
 
         Route::get('/personel-gruplari', [App\Http\Controllers\AdminController::class, 'getPersonelGruplari'])->name('personel_gruplari.get');
         Route::get('/personel-gruplari/ekle', [App\Http\Controllers\AdminController::class, 'getPersonelGruplariEkle'])->name('personel_gruplari_ekle.get');

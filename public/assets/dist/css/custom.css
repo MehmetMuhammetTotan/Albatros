@@ -1,3 +1,7 @@
 .not-allowed{
     cursor: no-drop !important;
 }
+
+.custom-file-label::after {
+    content: "Dosya Seçin" !important;
+}

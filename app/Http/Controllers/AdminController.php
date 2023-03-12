@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Admin;
 use App\Models\AdminYetkiler;
+use App\Models\Personel;
 use App\Models\PersonelGrubu;
+use Faker\Provider\Person;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -36,15 +38,15 @@ class AdminController extends Controller
         if (auth()->guard('admin')->attempt($validated) and Admin::where("deleted_at", null)->where("email", $request->email)->first() != "NULL") {
             if (!(auth()->guard('admin')->user()->status)) {
                 auth()->guard('admin')->logout();
-                return redirect()->back()->withErrors(["Hesabınız pasif durumdadır. Lütfen yönetici ile iletişime geçiniz."]);
+                return redirect()->route("admin.giris_yap.get")->withErrors(["Hesabınız pasif durumdadır. Lütfen yönetici ile iletişime geçiniz."]);
             }
             if ((auth()->guard('admin')->user()->deleted_at != null)) {
                 auth()->guard('admin')->logout();
-                return redirect()->back()->withErrors(["Email veya şifre hatalı"]);
+                return redirect()->route("admin.giris_yap.get")->withErrors(["Email veya şifre hatalı"]);
             }
             return redirect()->route('admin.index.get');
         } else {
-            return redirect()->back()->withErrors(["Email veya şifre hatalı"]);
+            return redirect()->route("admin.giris_yap.get")->withErrors(["Email veya şifre hatalı"]);
         }
     }
 
@@ -74,11 +76,11 @@ class AdminController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->route("admin.kullanicilar.get")->withErrors($validator)->withInput();
         }
 
         if (Admin::where("email", $request->email)->where("deleted_at", NULL)->first() != null) {
-            return redirect()->back()->withErrors(["Bu email adresi zaten kullanımda"])->withInput();
+            return redirect()->route("admin.kullanicilar.get")->withErrors(["Bu email adresi zaten kullanımda"])->withInput();
         }
 
         $admin = new Admin();
@@ -87,7 +89,7 @@ class AdminController extends Controller
         $admin->password = Hash::make($request->password);
         $admin->status = ($request->aktiflik == "on") ? 1 : 0;
         if (!$admin->save()) {
-            return redirect()->back()->withErrors(["Kullanıcı eklenirken bir hata oluştu"])->withInput();
+            return redirect()->route("admin.kullanicilar.get")->withErrors(["Kullanıcı eklenirken bir hata oluştu"])->withInput();
         }
         if (AdminYetkiler::where("admin_id", $admin->id)->first() == null) {
             $yetkiler = new AdminYetkiler();
@@ -107,11 +109,11 @@ class AdminController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->route("admin.profil.get")->withErrors($validator)->withInput();
         }
 
         if (Admin::where("email", $request->email)->where("deleted_at", NULL)->where("id", "!=", auth()->guard('admin')->user()->id)->first() != null) {
-            return redirect()->back()->withErrors(["Bu email adresi zaten kullanımda"])->withInput();
+            return redirect()->route("admin.profil.get")->withErrors(["Bu email adresi zaten kullanımda"])->withInput();
         }
 
         if (Hash::check($request->password, auth()->guard('admin')->user()->password)) {
@@ -119,9 +121,9 @@ class AdminController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
             ]);;
-            return redirect()->back()->with("success", "Profil bilgileriniz başarıyla güncellendi");
+            return redirect()->route("admin.profil.get")->with("success", "Profil bilgileriniz başarıyla güncellendi");
         } else {
-            return redirect()->back()->withErrors(["Mevcut şifreniz hatalı"])->withInput();
+            return redirect()->route("admin.profil.get")->withErrors(["Mevcut şifreniz hatalı"])->withInput();
         }
     }
 
@@ -135,9 +137,9 @@ class AdminController extends Controller
             auth()->guard('admin')->user()->update([
                 'password' => Hash::make($request->password),
             ]);
-            return redirect()->back()->with("success", "Şifreniz başarıyla güncellendi");
+            return redirect()->route("admin.profil.get")->with("success", "Şifreniz başarıyla güncellendi");
         } else {
-            return redirect()->back()->withErrors(["Mevcut şifreniz hatalı"]);
+            return redirect()->route("admin.profil.get")->withErrors(["Mevcut şifreniz hatalı"]);
         }
     }
 
@@ -173,11 +175,11 @@ class AdminController extends Controller
     public function getKullanicilarSil($id)
     {
         if(@kullanicininYetkileri()["kullanicilar"]["sil"] != "on") abort(403, "YETKİNİZ YOK");
-        if ($id == auth()->guard('admin')->user()->id) return redirect()->back()->withErrors(["Kendinizi silemezsiniz"]);
+        if ($id == auth()->guard('admin')->user()->id) return redirect()->route("admin.kullanicilar.get")->withErrors(["Kendinizi silemezsiniz"]);
         $kullanici = Admin::find($id);
         $kullanici->deleted_at = Carbon::now();
         if (!$kullanici->save()) {
-            return redirect()->back()->withErrors(["Kullanıcı silinirken bir hata oluştu"]);
+            return redirect()->route("admin.kullanicilar.get")->withErrors(["Kullanıcı silinirken bir hata oluştu"]);
         } else {
             return redirect()->route("admin.kullanicilar.get")->with("success", "Kullanıcı başarıyla silindi");
         }
@@ -314,8 +316,127 @@ class AdminController extends Controller
         if ($getPersonelGrubu == null) return redirect()->route("admin.personel_gruplari.get")->withErrors(["Personel grubu bulunamadı"]);
         $getPersonelGrubu->deleted_at = date("Y-m-d H:i:s");
         if(!$getPersonelGrubu->save()){
-            return redirect()->back()->withErrors(["Personel grubu silinirken bir hata oluştu"])->withInput();
+            return redirect()->route("admin.personel_gruplari.get")->withErrors(["Personel grubu silinirken bir hata oluştu"])->withInput();
         }
         return redirect()->route("admin.personel_gruplari.get")->with("success", "Personel grubu başarıyla silindi");
     }
+
+    public function getPersoneller(){
+        if(@kullanicininYetkileri()["personeller"]["goruntule"] != "on") abort(403, "YETKİNİZ YOK");
+        return view("admin.adminlte.sayfalar.personeller.personeller", ["personeller" => tabloGetir("personeller_view")]);
+    }
+
+    public function getPersonellerEkle(){
+        if(@kullanicininYetkileri()["personeller"]["ekle"] != "on") abort(403, "YETKİNİZ YOK");
+        return view("admin.adminlte.sayfalar.personeller.ekle", ["personel_gruplari" => PersonelGrubu::where("deleted_at", null)->get()]);
+    }
+
+    public function postPersonellerEkle(Request $request){
+        if(@kullanicininYetkileri()["personeller"]["ekle"] != "on") abort(403, "YETKİNİZ YOK");
+        $validator = Validator::make($request->all(), [
+            'ad' => 'required|string|min:3',
+            'soyad' => 'required|string|min:3',
+            'resim' => 'required|file|mimes:jpeg,png,jpg|max:10240', // 10 MB
+            'grup' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        if ($request->hasFile('resim')) {
+            $file = $request->file('resim');
+            if ($file->isValid()) {
+                $fileName = md5(time()) . '.' . $file->getClientOriginalExtension();
+                if (!$file->move(public_path('uploads/resimler'), $fileName)) {
+                    // Dosya yüklenirken hata oluştu
+                    return redirect()->back()->withErrors(['error' => 'Dosya yüklenirken hata oluştu'])->withInput();
+                }
+            } else {
+                // Dosya geçersiz
+                return redirect()->back()->withErrors(['error' => 'Resim geçersiz'])->withInput();
+            }
+        }else{
+            return redirect()->back()->withErrors(['error' => 'Resim yüklenirken hata oluştu'])->withInput();
+        }
+
+        $personel = new Personel();
+        $personel->ad = $request->ad;
+        $personel->soyad = $request->soyad;
+        $personel->resim = 'uploads/resimler/'.$fileName;
+        $personel->personel_grubu_id = $request->grup;
+        if(!$personel->save()){
+            unlink(public_path($personel->resim));
+            return redirect()->back()->withErrors(["Personel eklenirken bir hata oluştu"])->withInput();
+        }
+        return redirect()->route("admin.personeller.get")->with("success", "Personel başarıyla eklendi");
+    }
+
+    public function getPersonellerDuzenle($id){
+        if(@kullanicininYetkileri()["personeller"]["duzenle"] != "on") abort(403, "YETKİNİZ YOK");
+        if (!is_numeric($id)) return redirect()->route("admin.personeller.get")->withErrors(["Personel bulunamadı"]);
+        $getPersonel = Personel::where("deleted_at", null)->where("id", $id)->first();
+        if ($getPersonel == null) return redirect()->route("admin.personeller.get")->withErrors(["Personel bulunamadı"]);
+        return view("admin.adminlte.sayfalar.personeller.duzenle", ["get_personel" => $getPersonel, "personel_gruplari" => PersonelGrubu::where("deleted_at", null)->get()]);
+    }
+
+    public function postPersonellerDuzenle($id, Request $request){
+        if(@kullanicininYetkileri()["personeller"]["duzenle"] != "on") abort(403, "YETKİNİZ YOK");
+        if (!is_numeric($id)) return redirect()->route("admin.personeller.get")->withErrors(["Personel bulunamadı"]);
+        $getPersonel = Personel::where("deleted_at", null)->where("id", $id)->first();
+        if ($getPersonel == null) return redirect()->route("admin.personeller.get")->withErrors(["Personel bulunamadı"]);
+        if(@kullanicininYetkileri()["personeller"]["ekle"] != "on") abort(403, "YETKİNİZ YOK");
+        $validator = Validator::make($request->all(), [
+            'ad' => 'required|string|min:3',
+            'soyad' => 'required|string|min:3',
+            'resim' => 'nullable|file|mimes:jpeg,png,jpg|max:10240', // 10 MB
+            'grup' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        if ($request->hasFile('resim')) {
+            $file = $request->file('resim');
+            if ($file->isValid()) {
+                $fileName = md5(time()) . '.' . $file->getClientOriginalExtension();
+                if (!$file->move(public_path('uploads/resimler'), $fileName)) {
+                    // Dosya yüklenirken hata oluştu
+                    return redirect()->back()->withErrors(['error' => 'Dosya yüklenirken hata oluştu'])->withInput();
+                }
+            } else {
+                // Dosya geçersiz
+                return redirect()->back()->withErrors(['error' => 'Resim geçersiz'])->withInput();
+            }
+        }
+
+        $eskiPersonelResim = $getPersonel->resim;
+        $getPersonel->ad = $request->ad;
+        $getPersonel->soyad = $request->soyad;
+        if ($request->hasFile('resim')) {
+            $getPersonel->resim = 'uploads/resimler/'.$fileName;
+        }
+        $getPersonel->personel_grubu_id = $request->grup;
+        if(!$getPersonel->save()){
+            unlink(public_path('uploads/resimler/'.$fileName));
+            return redirect()->back()->withErrors(["Personel düzenlenirken bir hata oluştu"])->withInput();
+        }
+        if ($request->hasFile('resim')) {
+            unlink(public_path($eskiPersonelResim));
+        }
+        return redirect()->route("admin.personeller.get")->with("success", "Personel başarıyla düzenlendi");
+    }
+
+    public function getPersonellerSil($id){
+        if(@kullanicininYetkileri()["personeller"]["sil"] != "on") abort(403, "YETKİNİZ YOK");
+        if (!is_numeric($id)) return redirect()->route("admin.personeller.get")->withErrors(["Personel bulunamadı"]);
+        $getPersonel = Personel::where("deleted_at", null)->where("id", $id)->first();
+        if ($getPersonel == null) return redirect()->route("admin.personeller.get")->withErrors(["Personel bulunamadı"]);
+        $getPersonel->deleted_at = date("Y-m-d H:i:s");
+        if(!$getPersonel->save()){
+            return redirect()->route("admin.personeller.get")->withErrors(["Personel silinirken bir hata oluştu"])->withInput();
+        }
+        return redirect()->route("admin.personeller.get")->with("success", "Personel başarıyla silindi");
+    }
+
+
 }
