@@ -1,16 +1,17 @@
 @extends('admin.adminlte.partials.master')
 @section('content')
-    @section('title', config("const.kullanicilar").' - '.config("const.duzenle").' - '.config("const.yonetim_paneli"))
+    @section('title', config("const.personel_gruplari").' - '.config("const.ekle").' - '.config("const.yonetim_paneli"))
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>{{config("const.kullanici")}} {{config("const.duzenle")}}</h1>
+                    <h1>{{config("const.personel_gruplari")}} {{config("const.ekle")}}</h1>
                 </div>
                 <div class="col-sm-6">
                     <div class="breadcrumb float-sm-right">
-                        <a href="{{route("admin.kullanicilar.get")}}" class="btn btn-info"><i class="fa fa-users"></i> {{config("const.kullanicilar")}}</a>
+                        <a href="{{route("admin.personel_gruplari.get")}}" class="btn btn-info"><i
+                                class="fa fa-users"></i> {{config("const.personel_gruplari")}}</a>
                     </div>
                 </div>
             </div>
@@ -27,51 +28,58 @@
 
 
                 <div class="col-12">
-                    <div class="card card-warning">
+                    <div class="card card-success">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fas fa-user-edit"></i> #{{$kullanici->id}} {{config("const.kullanici")}} {{config("const.duzenle")}}</h3>
+                            <h3 class="card-title"><i
+                                    class="fas fa-user-plus"></i> {{config("const.yeni")}} {{config("const.personel_grubu")}} {{config("const.ekle")}}
+                            </h3>
                         </div>
                         <!-- /.card-header -->
                         <!-- form start -->
                         <!-- form start -->
-                        <form id="kullaniciDuzenle" method="post"
-                              action="{{route("admin.kullanicilar_duzenle.post", ["id" => $kullanici->id])}}">
+                        <form id="yeniPersonelGrubuEkle" method="post"
+                              action="{{route("admin.personel_gruplari_ekle.post")}}">
                             @csrf
                             <div class="card-body">
                                 <div class="form-group">
-                                    <label for="forName">Ad Soyad</label>
+                                    <label for="forName">Grup Adı</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
                                         </div>
-                                        <input type="text" name="name" class="form-control" id="forName"
-                                               placeholder="Adı Soyadı" value="{{old("name", $kullanici->name)}}">
+                                        <input type="text" name="grup_adi" class="form-control" id="forName"
+                                               placeholder="Grup Adı" value="{{old("grup_adi")}}">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="forEmail">Email</label>
+                                    <label for="forEmail">Grup Açıklaması</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                            <span class="input-group-text"><i class="fas fa-info-circle"></i></span>
                                         </div>
-                                        <input type="email" name="email" class="form-control" id="forEmail"
-                                               placeholder="Email Adresi" value="{{old("email", $kullanici->email)}}">
+                                        <input type="text" name="grup_aciklamasi" class="form-control" id="forEmail"
+                                               placeholder="Grup Açıklaması" value="{{old("grup_aciklamasi")}}">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="forPassword">Yeni Şifre</label>
+                                    <label>Üst Grup</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                            <span class="input-group-text"><i class="fas fa-home"></i></span>
                                         </div>
-                                        <input type="password" name="password" class="form-control" id="forPassword"
-                                               placeholder="Yeni Şifre">
+                                    <select class="form-control select2"  name="ust_grup">
+                                        <option @if(empty(old("ust_grup"))) selected @endif value="0">Ana Grup</option>
+                                        @foreach($personel_gruplari as $personel_grubu)
+                                            <option @if(old("ust_grup") == $personel_grubu->id) selected @endif value="{{$personel_grubu->id}}">{{$personel_grubu->grup_adi}}</option>
+                                        @endforeach
+                                    </select>
                                     </div>
                                 </div>
                             </div>
                             <!-- /.card-body -->
                             <div class="card-footer">
-                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> {{config("const.kaydet")}}</button>
+                                <button type="submit" class="btn btn-success"><i
+                                        class="fas fa-save"></i> {{config("const.kaydet")}}</button>
                             </div>
                         </form>
                         <!-- /.card-body -->
@@ -88,10 +96,12 @@
     <!-- jquery-validation -->
     <script src="{{asset('assets/plugins/jquery-validation/jquery.validate.min.js')}}"></script>
     <script src="{{asset('assets/plugins/jquery-validation/additional-methods.min.js')}}"></script>
+    <!-- Select2 -->
+    <script src="{{asset('assets/plugins/select2/js/select2.full.min.js')}}"></script>
     <script>
         $(function () {
 
-            $('form').on('submit', function(event) {
+            $('form').on('submit', function (event) {
                 // Formda hala geçerli olan validation kurallarını kontrol edin
                 if ($(this).valid()) {
                     // Geçerli ise form submit işlemini gerçekleştirin
@@ -100,32 +110,26 @@
                     submitButton.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{config("const.kaydediliyor")}}');
                 }
             });
-            $('#kullaniciDuzenle').validate({
+            $('#yeniPersonelGrubuEkle').validate({
                 rules: {
-                    email: {
+                    grup_adi: {
                         required: true,
-                        email: true,
+                        minlength: 3,
                     },
-                    password: {
-                        minlength: 6
-                    },
-                    name: {
+                    ust_grup: {
                         required: true,
-                        minlength: 3
+                        pattern: /^[0-9]+$/,
                     }
                 },
                 messages: {
-                    email: {
-                        required: "Email adresi zorunludur",
-                        email: "Lütfen geçerli bir email adresi giriniz"
+                    grup_adi: {
+                        required: "Grup adı zorunludur",
+                        minlength: "Grup adı en az 3 karakter uzunluğunda olmalıdır"
                     },
-                    password: {
-                        minlength: "Şifreniz en az 6 karakter uzunluğunda olmalıdır"
+                    ust_grup: {
+                        required: "Üst Grup zorunludur",
+                        pattern: "Sayısal değer giriniz"
                     },
-                    name: {
-                        required: "Ad Soyad zorunludur",
-                        minlength: "Adınız ve soyadınız en az 3 karakter uzunluğunda olmalıdır"
-                    }
                 },
                 errorElement: 'span',
                 errorPlacement: function (error, element) {
@@ -140,10 +144,13 @@
                 }
             });
 
-            $("input[data-bootstrap-switch]").each(function(){
+            $("input[data-bootstrap-switch]").each(function () {
                 $(this).bootstrapSwitch('state', $(this).prop('checked'));
             });
 
+            $('.select2').select2({
+                theme: 'bootstrap4'
+            });
         })
     </script>
 @endsection
@@ -151,4 +158,8 @@
 @section('css')
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="{{asset('assets/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css')}}">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{asset('assets/plugins/select2/css/select2.min.css')}}">
+    <link rel="stylesheet" href="{{asset('assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css')}}">
 @endsection
+

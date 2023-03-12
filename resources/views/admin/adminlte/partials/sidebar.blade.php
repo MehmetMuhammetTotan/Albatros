@@ -13,10 +13,9 @@
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <!-- Add icons to the links using the .nav-icon class
                      with font-awesome or any other icon font library -->
-
-                @if(@kullanicininYetkileri()["kullanicilar"]["goruntule"] == "on")
+            @if(@kullanicininYetkileri()["kullanicilar"]["goruntule"] == "on")
                 <li class="nav-item">
-                    <a href="{{route('admin.kullanicilar.get')}}" class="nav-link">
+                    <a href="{{route('admin.kullanicilar.get')}}" class="nav-link @if(request()->segment(2) == "kullanicilar") active @endif">
                         <i class="nav-icon fas fa-th"></i>
                         <p>
                             {{config('const.kullanicilar')}}
@@ -24,7 +23,27 @@
                     </a>
                 </li>
                 @endif
-                <li class="nav-item menu-open">
+                @if(@kullanicininYetkileri()["personeller"]["goruntule"] == "on")
+                <li class="nav-item">
+                    <a href="{{route('admin.personeller.get')}}" class="nav-link @if(request()->segment(2) == "personeller") active @endif">
+                        <i class="nav-icon fas fa-user"></i>
+                        <p>
+                            {{config('const.personeller')}}
+                        </p>
+                    </a>
+                </li>
+                @endif
+                @if(@kullanicininYetkileri()["personel_gruplari"]["goruntule"] == "on")
+                <li class="nav-item">
+                    <a href="{{route('admin.personel_gruplari.get')}}" class="nav-link @if(request()->segment(2) == "personel-gruplari") active @endif">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>
+                            {{config('const.personel_gruplari')}}
+                        </p>
+                    </a>
+                </li>
+                @endif
+                <li class="nav-item menu-open mt-5">
                     <a href="#" class="nav-link active">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>

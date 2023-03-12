@@ -1,15 +1,16 @@
 @extends('admin.adminlte.partials.master')
 @section('content')
+    @section('title', config("const.kullanicilar").' - '.config("const.yonetim_paneli"))
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Kullanıcılar</h1>
+                    <h1>{{config("const.kullanicilar")}}</h1>
                 </div>
                 <div class="col-sm-6">
                     <div class="breadcrumb float-sm-right">
-                        <a @if(@kullanicininYetkileri()["kullanicilar"]["ekle"] == "on") class="btn  ml-2 btn-outline-info" href="{{route("admin.kullanicilar_ekle.get")}}" @else href="#" title="YETKİNİZ YOK" class="btn  ml-2 btn-outline-info not-allowed" @endif><i class="fa fa-plus"></i> Kullanıcı Ekle</a>
+                        <a @if(@kullanicininYetkileri()["kullanicilar"]["ekle"] == "on") class="btn  ml-2 btn-outline-info" href="{{route("admin.kullanicilar_ekle.get")}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-info not-allowed" @endif><i class="fa fa-plus"></i> {{config("const.kullanici")}} {{config("const.ekle")}}</a>
                     </div>
                 </div>
             </div>
@@ -25,7 +26,7 @@
                 <div class="col-12">
                     <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">Kullanıcı Listesi</h3>
+                            <h3 class="card-title">{{config("const.kullanici")}} {{config("const.listesi")}}</h3>
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
@@ -48,9 +49,9 @@
                                         <td>{{$kullanici->id}}</td>
                                         <td>{{$kullanici->name}}</td>
                                         <td>{{$kullanici->email}}</td>
-                                        <td><input type="checkbox" @if($kullanici->id == auth()->guard('admin')->user()->id) disabled @endif name="my-checkbox" @if($kullanici->status) checked @endif data-id="{{$kullanici->id}}" data-bootstrap-switch data-on-text="AKTİF" data-off-text="PASİF" data-off-color="danger" data-on-color="success"></td>
+                                        <td><input type="checkbox" @if($kullanici->id == auth()->guard('admin')->user()->id OR @kullanicininYetkileri()["kullanicilar"]["duzenle"] != "on") disabled @endif name="my-checkbox" @if($kullanici->status) checked @endif data-id="{{$kullanici->id}}" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success"></td>
                                         <td>{{date("Y-m-d", strtotime($kullanici->created_at))}}</td>
-                                        <td><a @if(@kullanicininYetkileri()["kullanicilar"]["yetkiler"] == "on") class="btn  ml-2 btn-outline-info" href="{{route("admin.kullanicilar_yetkiler.get", ["id" => $kullanici->id])}}" @else href="#" title="YETKİNİZ YOK" class="btn  ml-2 btn-outline-info not-allowed" @endif><i class="fa fa-lock"></i> Yetkiler</a><a @if(@kullanicininYetkileri()["kullanicilar"]["duzenle"] == "on") class="btn  ml-2 btn-outline-warning" href="{{route("admin.kullanicilar_duzenle.get", ["id" => $kullanici->id])}}" @else href="#" title="YETKİNİZ YOK" class="btn  ml-2 btn-outline-warning not-allowed" @endif><i class="fas fa-pen"></i> Düzenle</a><a @if(@kullanicininYetkileri()["kullanicilar"]["sil"] == "on") class="btn  ml-2 btn-outline-danger btnSil" href="{{route("admin.kullanicilar_sil.get", ["id" => $kullanici->id])}}" @else href="#" title="YETKİNİZ YOK" class="btn  ml-2 btn-outline-danger not-allowed" @endif><i class="fas fa-trash"></i> Sil</a></td>
+                                        <td><a @if(@kullanicininYetkileri()["kullanicilar"]["yetkiler"] == "on") class="btn  ml-2 btn-outline-info" href="{{route("admin.kullanicilar_yetkiler.get", ["id" => $kullanici->id])}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-info not-allowed" @endif><i class="fa fa-lock"></i> {{config("const.yetkiler")}}</a><a @if(@kullanicininYetkileri()["kullanicilar"]["duzenle"] == "on") class="btn  ml-2 btn-outline-warning" href="{{route("admin.kullanicilar_duzenle.get", ["id" => $kullanici->id])}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-warning not-allowed" @endif><i class="fas fa-pen"></i> {{config("const.duzenle")}}</a><a @if(@kullanicininYetkileri()["kullanicilar"]["sil"] == "on") class="btn  ml-2 btn-outline-danger btnSil" href="{{route("admin.kullanicilar_sil.get", ["id" => $kullanici->id])}}" @else href="#" title="{{config("const.yetkiniz_yok")}}" class="btn  ml-2 btn-outline-danger not-allowed" @endif><i class="fas fa-trash"></i> {{config("const.sil")}}</a></td>
                                     </tr>
                                 @endforeach
                                 </tbody>

@@ -1,15 +1,16 @@
 @extends('admin.adminlte.partials.master')
 @section('content')
+    @section('title', config("const.kullanicilar").' - '.config("const.yetkiler").' - '.config("const.yonetim_paneli"))
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>#{{$kullanici->id}} Kullanıcının Yetkileri</h1>
+                    <h1>{{config("const.kullanici")}} {{config("const.yetkileri")}}</h1>
                 </div>
                 <div class="col-sm-6">
                     <div class="breadcrumb float-sm-right">
-                        <a href="{{route("admin.kullanicilar.get")}}" class="btn btn-info"><i class="fa fa-users"></i> Kullanıcılar</a>
+                        <a href="{{route("admin.kullanicilar.get")}}" class="btn btn-info"><i class="fa fa-users"></i> {{config("const.kullanicilar")}}</a>
                     </div>
                 </div>
             </div>
@@ -28,7 +29,7 @@
                 <div class="col-12">
                     <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fas fa-lock"></i> #{{$kullanici->id}} Kullanıcının Yetkileri</h3>
+                            <h3 class="card-title"><i class="fas fa-lock"></i> #{{$kullanici->id}} {{config("const.kullanici")}} {{config("const.yetkileri")}}</h3>
                         </div>
                         <!-- /.card-header -->
 
@@ -48,24 +49,63 @@
                                         <td>
                                             <div class="container"><div class="row">
                                                 <div class="col-auto border-right">
-                                                    Görüntüle: <input type="checkbox" @if(@$yetkiler["kullanicilar"]["goruntule"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="goruntule" data-bootstrap-switch data-on-text="AKTİF" data-off-text="PASİF" data-off-color="danger" data-on-color="success">
+                                                    {{config("const.goruntule")}}: <input type="checkbox" @if(@$yetkiler["kullanicilar"]["goruntule"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="goruntule" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
                                                 </div>
                                                     <div class="col-auto border-right">
-                                                        Ekle: <input type="checkbox" @if(@$yetkiler["kullanicilar"]["ekle"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="ekle" data-bootstrap-switch data-on-text="AKTİF" data-off-text="PASİF" data-off-color="danger" data-on-color="success">
+                                                        {{config("const.ekle")}}: <input type="checkbox" @if(@$yetkiler["kullanicilar"]["ekle"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="ekle" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
                                                     </div>
                                                 <div class="col-auto border-right">
-                                                    Yetkiler: <input type="checkbox"  @if(@$yetkiler["kullanicilar"]["yetkiler"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="yetkiler" data-bootstrap-switch data-on-text="AKTİF" data-off-text="PASİF" data-off-color="danger" data-on-color="success">
+                                                    {{config("const.duzenle")}}: <input type="checkbox"  @if(@$yetkiler["kullanicilar"]["duzenle"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="duzenle" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
                                                 </div>
-
                                                 <div class="col-auto border-right">
-                                                    Düzenle: <input type="checkbox"  @if(@$yetkiler["kullanicilar"]["duzenle"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="duzenle" data-bootstrap-switch data-on-text="AKTİF" data-off-text="PASİF" data-off-color="danger" data-on-color="success">
+                                                    {{config("const.sil")}}: <input type="checkbox"  @if(@$yetkiler["kullanicilar"]["sil"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="sil" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
                                                 </div>
+                                                    <div class="col-auto">
+                                                        {{config("const.yetkiler")}}: <input type="checkbox"  @if(@$yetkiler["kullanicilar"]["yetkiler"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="yetkiler" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
+                                                    </div>
+                                                </div>
+                                                </div>
+                                        </td>
+                                    </tr>
 
-                                                <div class="col-auto">
-                                                    Sil: <input type="checkbox"  @if(@$yetkiler["kullanicilar"]["sil"] == "on") checked @endif name="my-checkbox" data-menu="kullanicilar" data-alt-menu="sil" data-bootstrap-switch data-on-text="AKTİF" data-off-text="PASİF" data-off-color="danger" data-on-color="success">
+                                    <tr>
+                                        <td>{{config('const.personeller')}}</td>
+                                        <td>
+                                            <div class="container"><div class="row">
+                                                    <div class="col-auto border-right">
+                                                        {{config("const.goruntule")}}: <input type="checkbox" @if(@$yetkiler["personeller"]["goruntule"] == "on") checked @endif name="my-checkbox" data-menu="personeller" data-alt-menu="goruntule" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
+                                                    </div>
+                                                    <div class="col-auto border-right">
+                                                        {{config("const.ekle")}}: <input type="checkbox" @if(@$yetkiler["personeller"]["ekle"] == "on") checked @endif name="my-checkbox" data-menu="personeller" data-alt-menu="ekle" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
+                                                    </div>
+                                                    <div class="col-auto border-right">
+                                                        {{config("const.duzenle")}}: <input type="checkbox"  @if(@$yetkiler["personeller"]["duzenle"] == "on") checked @endif name="my-checkbox" data-menu="personeller" data-alt-menu="duzenle" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        {{config("const.sil")}}: <input type="checkbox"  @if(@$yetkiler["personeller"]["sil"] == "on") checked @endif name="my-checkbox" data-menu="personeller" data-alt-menu="sil" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
+                                                    </div>
                                                 </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{config('const.personel_gruplari')}}</td>
+                                        <td>
+                                            <div class="container"><div class="row">
+                                                    <div class="col-auto border-right">
+                                                        {{config("const.goruntule")}}: <input type="checkbox" @if(@$yetkiler["personel_gruplari"]["goruntule"] == "on") checked @endif name="my-checkbox" data-menu="personel_gruplari" data-alt-menu="goruntule" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
+                                                    </div>
+                                                    <div class="col-auto border-right">
+                                                        {{config("const.ekle")}}: <input type="checkbox" @if(@$yetkiler["personel_gruplari"]["ekle"] == "on") checked @endif name="my-checkbox" data-menu="personel_gruplari" data-alt-menu="ekle" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
+                                                    </div>
+                                                    <div class="col-auto border-right">
+                                                        {{config("const.duzenle")}}: <input type="checkbox"  @if(@$yetkiler["personel_gruplari"]["duzenle"] == "on") checked @endif name="my-checkbox" data-menu="personel_gruplari" data-alt-menu="duzenle" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        {{config("const.sil")}}: <input type="checkbox"  @if(@$yetkiler["personel_gruplari"]["sil"] == "on") checked @endif name="my-checkbox" data-menu="personel_gruplari" data-alt-menu="sil" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
+                                                    </div>
                                                 </div>
-                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>

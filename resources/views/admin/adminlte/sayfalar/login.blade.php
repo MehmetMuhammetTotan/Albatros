@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Yönetim Paneli')</title>
+    <title>@yield('title', config("const.giris_yap").' - '.config("const.yonetim_paneli"))</title>
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet"

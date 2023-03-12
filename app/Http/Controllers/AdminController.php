@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Admin;
 use App\Models\AdminYetkiler;
+use App\Models\PersonelGrubu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -65,6 +66,7 @@ class AdminController extends Controller
 
     public function postKullanicilarEkle(Request $request)
     {
+        if(@kullanicininYetkileri()["kullanicilar"]["ekle"] != "on") abort(403, "YETKİNİZ YOK");
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
@@ -241,5 +243,79 @@ class AdminController extends Controller
             return json_encode(["status" => false, "message" => "Kullanıcı yetkileri güncellenirken bir hata oluştu"]);
         }
         return json_encode(["status" => true, "message" => "Kullanıcı yetkileri başarıyla güncellendi"]);
+    }
+
+    public function getPersonelGruplari(){
+        if(@kullanicininYetkileri()["personel_gruplari"]["goruntule"] != "on") abort(403, "YETKİNİZ YOK");
+        return view("admin.adminlte.sayfalar.personel_gruplari.personel_gruplari", ["personel_gruplari" => tabloGetir("personel_gruplari_view")]);
+    }
+
+    public function getPersonelGruplariEkle(){
+        if(@kullanicininYetkileri()["personel_gruplari"]["ekle"] != "on") abort(403, "YETKİNİZ YOK");
+        return view("admin.adminlte.sayfalar.personel_gruplari.ekle", ["personel_gruplari" => PersonelGrubu::where("deleted_at", null)->get()]);
+    }
+
+    public function postPersonelGruplariEkle(Request $request){
+        if(@kullanicininYetkileri()["personel_gruplari"]["ekle"] != "on") abort(403, "YETKİNİZ YOK");
+        $validator = Validator::make($request->all(), [
+            'grup_adi' => 'required|string|min:3',
+            'ust_grup' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $personelGrubu = new PersonelGrubu();
+        $personelGrubu->grup_adi = $request->grup_adi;
+        $personelGrubu->ust_grup = $request->ust_grup;
+        $personelGrubu->grup_aciklamasi = $request->grup_aciklamasi;
+        if(!$personelGrubu->save()){
+            return redirect()->back()->withErrors(["Personel grubu eklenirken bir hata oluştu"])->withInput();
+        }
+        return redirect()->route("admin.personel_gruplari.get")->with("success", "Personel grubu başarıyla eklendi");
+    }
+
+    public function getPersonelGruplariDuzenle($id){
+        if(@kullanicininYetkileri()["personel_gruplari"]["duzenle"] != "on") abort(403, "YETKİNİZ YOK");
+        if (!is_numeric($id)) return redirect()->route("admin.personel_gruplari.get")->withErrors(["Personel grubu bulunamadı"]);
+        $getPersonelGrubu = PersonelGrubu::where("deleted_at", null)->where("id", $id)->first();
+        if ($getPersonelGrubu == null) return redirect()->route("admin.personel_gruplari.get")->withErrors(["Personel grubu bulunamadı"]);
+        return view("admin.adminlte.sayfalar.personel_gruplari.duzenle", ["get_personel_grubu" => $getPersonelGrubu, "personel_gruplari" => PersonelGrubu::where("deleted_at", null)->get()]);
+    }
+
+    public function postPersonelGruplariDuzenle($id, Request $request){
+        if(@kullanicininYetkileri()["personel_gruplari"]["duzenle"] != "on") abort(403, "YETKİNİZ YOK");
+        if (!is_numeric($id)) return redirect()->route("admin.personel_gruplari.get")->withErrors(["Personel grubu bulunamadı"]);
+        $getPersonelGrubu = PersonelGrubu::where("deleted_at", null)->where("id", $id)->first();
+        if ($getPersonelGrubu == null) return redirect()->route("admin.personel_gruplari.get")->withErrors(["Personel grubu bulunamadı"]);
+        $validator = Validator::make($request->all(), [
+            'grup_adi' => 'required|string|min:3',
+            'ust_grup' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $getPersonelGrubu->grup_adi = $request->grup_adi;
+        $getPersonelGrubu->ust_grup = $request->ust_grup;
+        $getPersonelGrubu->grup_aciklamasi = $request->grup_aciklamasi;
+        if(!$getPersonelGrubu->save()){
+            return redirect()->back()->withErrors(["Personel grubu düzenlenirken bir hata oluştu"])->withInput();
+        }
+        return redirect()->route("admin.personel_gruplari.get")->with("success", "Personel grubu başarıyla düzenlendi");
+    }
+
+    public function getPersonelGruplariSil($id){
+        if(@kullanicininYetkileri()["personel_gruplari"]["sil"] != "on") abort(403, "YETKİNİZ YOK");
+        if (!is_numeric($id)) return redirect()->route("admin.personel_gruplari.get")->withErrors(["Personel grubu bulunamadı"]);
+        $getPersonelGrubu = PersonelGrubu::where("deleted_at", null)->where("id", $id)->first();
+        if ($getPersonelGrubu == null) return redirect()->route("admin.personel_gruplari.get")->withErrors(["Personel grubu bulunamadı"]);
+        $getPersonelGrubu->deleted_at = date("Y-m-d H:i:s");
+        if(!$getPersonelGrubu->save()){
+            return redirect()->back()->withErrors(["Personel grubu silinirken bir hata oluştu"])->withInput();
+        }
+        return redirect()->route("admin.personel_gruplari.get")->with("success", "Personel grubu başarıyla silindi");
     }
 }

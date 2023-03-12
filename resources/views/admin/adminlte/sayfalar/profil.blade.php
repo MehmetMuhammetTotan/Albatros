@@ -1,17 +1,15 @@
 @extends('admin.adminlte.partials.master')
 @section('content')
+    @section('title', config("const.profil").' - '.config("const.yonetim_paneli"))
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                     <h1>Profil</h1>
+                     <h1>{{config("const.profil")}}</h1>
                 </div>
                 <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{route("admin.index.get")}}">Ana Sayfa</a></li>
-                        <li class="breadcrumb-item active">Profil</li>
-                    </ol>
+
                 </div>
             </div>
         </div><!-- /.container-fluid -->
@@ -71,7 +69,7 @@
                             </div>
                             <!-- /.card-body -->
                             <div class="card-footer">
-                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Kaydet</button>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> {{config("const.kaydet")}}</button>
                             </div>
                         </form>
                     </div>
@@ -121,7 +119,7 @@
                             </div>
                             <!-- /.card-body -->
                             <div class="card-footer">
-                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Kaydet</button>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> {{config("const.kaydet")}}</button>
                             </div>
                         </form>
                     </div>
@@ -148,7 +146,7 @@
                 // Geçerli ise form submit işlemini gerçekleştirin
                 var submitButton = $(this).find('button[type="submit"]');
                 submitButton.prop("disabled", true);
-                submitButton.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...');
+                submitButton.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{config("const.kaydediliyor")}}');
             }
         });
         $('#bilgileriGuncelle').validate({

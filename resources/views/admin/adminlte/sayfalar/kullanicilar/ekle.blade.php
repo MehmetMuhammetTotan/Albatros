@@ -1,15 +1,16 @@
 @extends('admin.adminlte.partials.master')
 @section('content')
+    @section('title', config("const.kullanicilar").' - '.config("const.ekle").' - '.config("const.yonetim_paneli"))
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Kullanıcı Ekle</h1>
+                    <h1>{{config("const.kullanici")}} {{config("const.ekle")}}</h1>
                 </div>
                 <div class="col-sm-6">
                     <div class="breadcrumb float-sm-right">
-                        <a href="{{route("admin.kullanicilar.get")}}" class="btn btn-info"><i class="fa fa-users"></i> Kullanıcılar</a>
+                        <a href="{{route("admin.kullanicilar.get")}}" class="btn btn-info"><i class="fa fa-users"></i> {{config("const.kullanicilar")}}</a>
                     </div>
                 </div>
             </div>
@@ -28,7 +29,7 @@
                 <div class="col-12">
                     <div class="card card-success">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fas fa-user-plus"></i> Yeni Kullanıcı Ekle</h3>
+                            <h3 class="card-title"><i class="fas fa-user-plus"></i> {{config("const.yeni")}} {{config("const.kullanici")}} {{config("const.ekle")}}</h3>
                         </div>
                         <!-- /.card-header -->
                         <!-- form start -->
@@ -70,13 +71,13 @@
                                 <div class="form-group">
                                     <label for="forStatus">Durum</label>
                                     <div class="input-group">
-                                        <input id="forStatus" type="checkbox" @if(old("aktiflik")) checked @endif name="aktiflik" data-bootstrap-switch data-on-text="AKTİF" data-off-text="PASİF" data-off-color="danger" data-on-color="success">
+                                        <input id="forStatus" type="checkbox" @if(old("aktiflik")) checked @endif name="aktiflik" data-bootstrap-switch data-on-text="{{config("const.aktif")}}" data-off-text="{{config("const.pasif")}}" data-off-color="danger" data-on-color="success">
                                     </div>
                                 </div>
                             </div>
                             <!-- /.card-body -->
                             <div class="card-footer">
-                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Kaydet</button>
+                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> {{config("const.kaydet")}}</button>
                             </div>
                         </form>
                         <!-- /.card-body -->
@@ -102,7 +103,7 @@
                     // Geçerli ise form submit işlemini gerçekleştirin
                     var submitButton = $(this).find('button[type="submit"]');
                     submitButton.prop("disabled", true);
-                    submitButton.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Kaydediliyor...');
+                    submitButton.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{config("const.kaydediliyor")}}');
                 }
             });
             $('#yeniKullaniciEkle').validate({
