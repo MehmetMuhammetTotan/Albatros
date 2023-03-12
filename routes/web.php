@@ -53,5 +53,11 @@ Route::prefix('/yonetim')->name('admin.')->group(function () {
         Route::get('/personel-gruplari/duzenle/{id}', [App\Http\Controllers\AdminController::class, 'getPersonelGruplariDuzenle'])->name('personel_gruplari_duzenle.get');
         Route::post('/personel-gruplari/duzenle/{id}', [App\Http\Controllers\AdminController::class, 'postPersonelGruplariDuzenle'])->name('personel_gruplari_duzenle.post');
         Route::get('/personel-gruplari/sil/{id}', [App\Http\Controllers\AdminController::class, 'getPersonelGruplariSil'])->name('personel_gruplari_sil.get');
+
+        Route::get('/site-ayarlari', [App\Http\Controllers\AdminController::class, 'getSiteAyarlari'])->name('site_ayarlari.get');
+        Route::post('/site-ayarlari/temel-bilgiler', [App\Http\Controllers\AdminController::class, 'postSiteAyarlariTemelBilgiler'])->name('site_ayarlari_temel_bilgiler.post');
+        Route::post('/site-ayarlari/site-resimleri', [App\Http\Controllers\AdminController::class, 'postSiteAyarlariSiteResimleri'])->name('site_ayarlari_site_resimleri.post');
+        Route::post('/site-ayarlari/iletisim-bilgileri', [App\Http\Controllers\AdminController::class, 'postSiteAyarlariIletisimBilgileri'])->name('site_ayarlari_iletisim_bilgileri.post');
+        Route::post('/site-ayarlari/sosyal-medya', [App\Http\Controllers\AdminController::class, 'postSiteAyarlariSosyalMedya'])->name('site_ayarlari_sosyal_medya.post');
     });
 });

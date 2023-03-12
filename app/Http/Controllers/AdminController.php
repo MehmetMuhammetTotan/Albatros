@@ -6,6 +6,7 @@ use App\Models\Admin;
 use App\Models\AdminYetkiler;
 use App\Models\Personel;
 use App\Models\PersonelGrubu;
+use App\Models\SiteAyarlari;
 use Faker\Provider\Person;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -438,5 +439,142 @@ class AdminController extends Controller
         return redirect()->route("admin.personeller.get")->with("success", "Personel başarıyla silindi");
     }
 
+    public function getSiteAyarlari(){
+        if(@kullanicininYetkileri()["site_ayarlari"]["goruntule"] != "on") abort(403, "YETKİNİZ YOK");
+        return view("admin.adminlte.sayfalar.site_ayarlari", ["site_ayarlari" => SiteAyarlari::all()]);
+    }
 
+    public function postSiteAyarlariTemelBilgiler(Request $request){
+        if(@kullanicininYetkileri()["site_ayarlari"]["temel_bilgiler"] != "on") abort(403, "YETKİNİZ YOK");
+        $validator = Validator::make($request->all(), [
+            'site_adi' => 'required|string|min:3',
+            'site_aciklama' => 'required|string|min:3',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $site_adi = SiteAyarlari::where("anahtar", "site_adi")->first();
+        $site_adi->deger = $request->site_adi;
+        $site_aciklama = SiteAyarlari::where("anahtar", "site_aciklama")->first();
+        $site_aciklama->deger = $request->site_aciklama;
+
+        if(!$site_adi->save() || !$site_aciklama->save()){
+            return redirect()->back()->withErrors(["Site ayarları düzenlenirken bir hata oluştu"])->withInput();
+        }
+        return redirect()->route("admin.site_ayarlari.get")->with("success", "Site ayarları başarıyla düzenlendi");
+    }
+
+    public function postSiteAyarlariSiteResimleri(Request $request){
+        if(@kullanicininYetkileri()["site_ayarlari"]["site_resimleri"] != "on") abort(403, "YETKİNİZ YOK");
+        $validator = Validator::make($request->all(), [
+            'logo' => 'nullable|file|mimes:jpeg,png,jpg|max:10240', // 10 MB
+            'favicon' => 'nullable|file|mimes:ico|max:10240', // 10 MB
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            if ($file->isValid()) {
+                $fileName = md5(time()) . '.' . $file->getClientOriginalExtension();
+                if (!$file->move(public_path('uploads/resimler'), $fileName)) {
+                    // Dosya yüklenirken hata oluştu
+                    return redirect()->back()->withErrors(['error' => 'Site logosu yüklenirken hata oluştu'])->withInput();
+                }else{
+                    $site_logo = SiteAyarlari::where("anahtar", "logo")->first();
+                    $eskiLogo = $site_logo->deger;
+                    $site_logo->deger = 'uploads/resimler/'.$fileName;
+                    if(!$site_logo->save()){
+                        unlink(public_path('uploads/resimler/'.$fileName));
+                        return redirect()->back()->withErrors(["Site logosu düzenlenirken bir hata oluştu"])->withInput();
+                    }else{
+                        unlink(public_path($eskiLogo));
+                    }
+                }
+            } else {
+                // Dosya geçersiz
+                return redirect()->back()->withErrors(['error' => 'Site logosu geçersiz'])->withInput();
+            }
+        }
+
+        if ($request->hasFile('favicon')) {
+            $file = $request->file('favicon');
+            if ($file->isValid()) {
+                $fileName = md5(time()) . '.' . $file->getClientOriginalExtension();
+                if (!$file->move(public_path('uploads/resimler'), $fileName)) {
+                    // Dosya yüklenirken hata oluştu
+                    return redirect()->back()->withErrors(['error' => 'Favicon yüklenirken hata oluştu'])->withInput();
+                }else{
+                    $site_favicon = SiteAyarlari::where("anahtar", "favicon")->first();
+                    $eskiFavicon = $site_favicon->deger;
+                    $site_favicon->deger = 'uploads/resimler/'.$fileName;
+                    if(!$site_favicon->save()){
+                        unlink(public_path('uploads/resimler/'.$fileName));
+                        return redirect()->back()->withErrors(["Favicon düzenlenirken bir hata oluştu"])->withInput();
+                    }else{
+                        unlink(public_path($eskiFavicon));
+                    }
+                }
+            } else {
+                // Dosya geçersiz
+                return redirect()->back()->withErrors(['error' => 'Favicon geçersiz'])->withInput();
+            }
+        }
+        return redirect()->route("admin.site_ayarlari.get")->with("success", "Site resimleri başarıyla düzenlendi");
+    }
+
+    public function postSiteAyarlariIletisimBilgileri(Request $request){
+        if(@kullanicininYetkileri()["site_ayarlari"]["iletisim_bilgileri"] != "on") abort(403, "YETKİNİZ YOK");
+        $validator = Validator::make($request->all(), [
+            'adres' => 'required|string|min:3',
+            'telefon' => 'required|string|min:3',
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $site_adres = SiteAyarlari::where("anahtar", "adres")->first();
+        $site_adres->deger = $request->adres;
+        $site_telefon = SiteAyarlari::where("anahtar", "telefon")->first();
+        $site_telefon->deger = $request->telefon;
+        $site_email = SiteAyarlari::where("anahtar", "email")->first();
+        $site_email->deger = $request->email;
+
+        if(!$site_adres->save() || !$site_telefon->save() || !$site_email->save()){
+            return redirect()->back()->withErrors(["İletişim bilgileri düzenlenirken bir hata oluştu"])->withInput();
+        }
+        return redirect()->route("admin.site_ayarlari.get")->with("success", "İletişim bilgileri başarıyla düzenlendi");
+    }
+
+    public function postSiteAyarlariSosyalMedya(Request $request){
+        if(@kullanicininYetkileri()["site_ayarlari"]["sosyal_medya"] != "on") abort(403, "YETKİNİZ YOK");
+        $validator = Validator::make($request->all(), [
+            'facebook' => 'nullable|url',
+            'twitter' => 'nullable|url',
+            'instagram' => 'nullable|url',
+            'youtube' => 'nullable|url',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $site_facebook = SiteAyarlari::where("anahtar", "facebook")->first();
+        $site_facebook->deger = $request->facebook;
+        $site_twitter = SiteAyarlari::where("anahtar", "twitter")->first();
+        $site_twitter->deger = $request->twitter;
+        $site_instagram = SiteAyarlari::where("anahtar", "instagram")->first();
+        $site_instagram->deger = $request->instagram;
+
+        if(!$site_facebook->save() || !$site_twitter->save() || !$site_instagram->save()){
+            return redirect()->back()->withErrors(["Sosyal medya hesapları düzenlenirken bir hata oluştu"])->withInput();
+        }
+        return redirect()->route("admin.site_ayarlari.get")->with("success", "Sosyal medya hesapları başarıyla düzenlendi");
+    }
 }

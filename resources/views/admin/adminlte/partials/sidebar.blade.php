@@ -43,6 +43,17 @@
                     </a>
                 </li>
                 @endif
+                @if(@kullanicininYetkileri()["site_ayarlari"]["goruntule"] == "on")
+                    <li class="nav-item">
+                        <a href="{{route('admin.site_ayarlari.get')}}" class="nav-link @if(request()->segment(2) == "site-ayarlari") active @endif">
+                            <i class="nav-icon fas fa-cog"></i>
+                            <p>
+                                {{config('const.site_ayarlari')}}
+                            </p>
+                        </a>
+                    </li>
+                @endif
+                <?php /* ?>
                 <li class="nav-item menu-open mt-5">
                     <a href="#" class="nav-link active">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
@@ -674,6 +685,7 @@
                         <p>Informational</p>
                     </a>
                 </li>
+                <?php */ ?>
             </ul>
         </nav>
         <!-- /.sidebar-menu -->
